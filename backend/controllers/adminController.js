@@ -5,6 +5,7 @@ import User from "../models/User.js";
 export const createAdminRequest = catchAsyncErrors(async (req, res, next) => {
   const { userId, name, email, phone, status, requestDetails, reviewedBy } =
     req.body;
+  console.log("requested");
 
   // Create new AdminRequest
   const adminRequest = await AdminRequest.create({
