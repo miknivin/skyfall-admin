@@ -46,6 +46,8 @@ interface AdminUsersResponse {
 
 type UserTag = "User" | "AdminUsers" | "AdminUser";
 const API_URL = getApiUrl()
+console.log(API_URL,'APi url');
+
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
