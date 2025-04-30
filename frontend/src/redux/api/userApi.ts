@@ -51,7 +51,7 @@ console.log(API_URL,'APi url');
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/api/v1`,
+    baseUrl: `/api/v1`,
     credentials: "include",
   }),
   tagTypes: ["User", "AdminUsers", "AdminUser"] as UserTag[],
