@@ -12,6 +12,7 @@ import {
 import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { useAddRoomsMutation } from "@/redux/api/propertiesApi";
 import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export function AddRoomDialog({ open, handleOpen, resortId }) {
   const initialRoomState = {
@@ -106,8 +107,9 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
         rooms: formattedRooms,
         availabilityDates,
       }).unwrap();
-      setRooms([initialRoomState]); // Reset form
-      handleOpen(); // Close dialog
+      setRooms([initialRoomState]); 
+      toast.success("Rooms added successfully")
+      handleOpen(); 
     } catch (err) {
       setError(err?.data?.message || "Failed to add rooms");
     }
