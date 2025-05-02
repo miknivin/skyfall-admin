@@ -64,6 +64,14 @@ const ResortSchema = new Schema(
           type: Number,
           required: true,
         },
+        description: {
+          type: String,
+        },
+        images: [
+          {
+            type: String,
+          },
+        ],
         roomCount: {
           type: Number, // Number of rooms of this type
           required: true,
@@ -100,14 +108,6 @@ const ResortSchema = new Schema(
         type: {
           type: String, // e.g., "Banquet Hall", "Outdoor Garden"
           required: [true, "Event space type is required"],
-          enum: [
-            "Banquet Hall",
-            "Outdoor Garden",
-            "Conference Room",
-            "Terrace",
-            "Lawn",
-            "Other",
-          ],
         },
         capacity: {
           type: Number, // Max guests the space can accommodate
@@ -133,7 +133,7 @@ const ResortSchema = new Schema(
             },
             status: {
               type: String,
-              enum: ["available", "booked", "TemporaryClosed"],
+              enum: ["available", "booked", "temporaryClosed"],
               default: "available",
             },
           },

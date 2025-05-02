@@ -14,6 +14,15 @@ interface Room {
   roomCount: number;
 }
 
+interface EventSpace {
+  name: string;
+  type: string;
+  capacity: number;
+  pricePerEvent: number;
+  description?: string;
+  images?: string[];
+}
+
 interface AvailableRoom {
   roomType: string;
   count: number;
@@ -21,7 +30,7 @@ interface AvailableRoom {
 
 interface AvailabilityDate {
   date: string;
-  availableRooms: AvailableRoom[];
+  status: 'available' | 'booked' | 'TemporaryClosed';
 }
 
 interface Property {
@@ -51,6 +60,12 @@ interface PropertyResponse {
 interface AddRoomsRequest {
   resortId: string;
   rooms: Room[];
+  availabilityDates?: AvailabilityDate[];
+}
+
+interface AddEventSpacesRequest {
+  resortId: string;
+  eventSpaces: EventSpace[];
   availabilityDates?: AvailabilityDate[];
 }
 
@@ -89,6 +104,17 @@ export const propertiesApi = createApi({
         'Properties',
       ],
     }),
+    addEventSpace: builder.mutation<PropertyResponse, AddEventSpacesRequest>({
+      query: ({ resortId, eventSpaces, availabilityDates }) => ({
+        url: `/my-properties/${resortId}/event-space`,
+        method: 'PUT',
+        body: { eventSpaces, availabilityDates },
+      }),
+      invalidatesTags: (result, error, { resortId }) => [
+        { type: 'Properties', id: resortId },
+        'Properties',
+      ],
+    }),
   }),
 });
 
@@ -96,4 +122,5 @@ export const {
   useGetAdminPropertiesQuery,
   useGetPropertyByIdQuery,
   useAddRoomsMutation,
+  useAddEventSpaceMutation,
 } = propertiesApi;

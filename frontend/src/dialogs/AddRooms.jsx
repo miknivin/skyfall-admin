@@ -11,7 +11,6 @@ import {
 } from "@material-tailwind/react";
 import { XMarkIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { useAddRoomsMutation } from "@/redux/api/propertiesApi";
-import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export function AddRoomDialog({ open, handleOpen, resortId }) {
@@ -20,8 +19,9 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
     capacity: "",
     pricePerNight: "",
     roomCount: "",
+    images: [], // Array to store image files or base64 strings
     availability: [{ date: "", count: "" }],
-    isRoomTypeDropdownOpen: false, // Track dropdown visibility
+    isRoomTypeDropdownOpen: false,
   };
 
   const [rooms, setRooms] = useState([initialRoomState]);
@@ -52,6 +52,35 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
   const handleAvailabilityChange = (roomIndex, availIndex, field, value) => {
     const updatedRooms = [...rooms];
     updatedRooms[roomIndex].availability[availIndex][field] = value;
+    setRooms(updatedRooms);
+  };
+
+  const handleImageChange = (roomIndex, e) => {
+    const files = Array.from(e.target.files);
+    const updatedRooms = [...rooms];
+    // Convert files to base64 for preview and backend submission
+    Promise.all(
+      files.map((file) =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({ file, base64: reader.result });
+          reader.readAsDataURL(file);
+        })
+      )
+    ).then((results) => {
+      updatedRooms[roomIndex].images = [
+        ...updatedRooms[roomIndex].images,
+        ...results.map((res) => ({ file: res.file, base64: res.base64 })),
+      ];
+      setRooms(updatedRooms);
+    });
+  };
+
+  const removeImage = (roomIndex, imageIndex) => {
+    const updatedRooms = [...rooms];
+    updatedRooms[roomIndex].images = updatedRooms[roomIndex].images.filter(
+      (_, i) => i !== imageIndex
+    );
     setRooms(updatedRooms);
   };
 
@@ -90,13 +119,13 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
       capacity: parseInt(room.capacity) || 0,
       pricePerNight: parseFloat(room.pricePerNight) || 0,
       roomCount: parseInt(room.roomCount) || 0,
+      images: room.images.map((img) => img.base64), // Send base64 strings to backend
     }));
 
     const availabilityDates = rooms.flatMap((room, roomIndex) =>
       room.availability
         .filter((avail) => avail.date && avail.count)
         .map((avail) => ({
-          date: avail.date,
           availableRooms: [{ roomType: room.roomType, count: parseInt(avail.count) || 0 }],
         }))
     );
@@ -107,15 +136,14 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
         rooms: formattedRooms,
         availabilityDates,
       }).unwrap();
-      setRooms([initialRoomState]); 
-      toast.success("Rooms added successfully")
-      handleOpen(); 
+      setRooms([initialRoomState]);
+      toast.success("Rooms added successfully");
+      handleOpen();
     } catch (err) {
       setError(err?.data?.message || "Failed to add rooms");
     }
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       dropdownRefs.current.forEach((ref, index) => {
@@ -128,14 +156,16 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [rooms]);
 
-  // Get today's date in YYYY-MM-DD format
   const getLocalDate = () => {
     const today = new Date();
-    return today.getFullYear() + '-' +
-      String(today.getMonth() + 1).padStart(2, '0') + '-' +
-      String(today.getDate()).padStart(2, '0');
+    return (
+      today.getFullYear() +
+      "-" +
+      String(today.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(today.getDate()).padStart(2, "0")
+    );
   };
-  
 
   return (
     <Dialog size="lg" open={open} handler={handleOpen} className="p-4">
@@ -270,6 +300,44 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
                 containerProps={{ className: "!min-w-full" }}
                 labelProps={{ className: "hidden" }}
               />
+            </div>
+            <div>
+            <label
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                htmlFor="small_size"
+              >
+                Room Images
+              </label>
+              <input
+                className="block w-full mb-5 text-sm p-2 rounded-md text-gray-900 border  border-blue-gray-200 cursor-pointer bg-transparent focus:outline-none"
+                id={`imageUpload-${roomIndex}`}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleImageChange(roomIndex, e)}
+              />
+              {room.images&&room.images.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {room.images.map((image, imageIndex) => (
+                    <div key={imageIndex} className="relative">
+                      <img
+                        src={image.base64}
+                        alt={`Room ${roomIndex + 1} preview ${imageIndex + 1}`}
+                        className="h-24 w-full max-w-sm object-cover rounded-md"
+                      />
+                      <IconButton
+                        variant="text"
+                        color="red"
+                        size="sm"
+                        className="!absolute top-1 right-1"
+                        onClick={() => removeImage(roomIndex, imageIndex)}
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </IconButton>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <Typography

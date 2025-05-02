@@ -11,6 +11,9 @@ export const validateAddRooms = (req, res, next) => {
     );
   }
 
+  // Basic URL validation regex
+  const urlRegex = /^(https?:\/\/[^\s/$.?#].[^\s]*)$/;
+
   // Validate each room
   for (const room of rooms) {
     if (
@@ -26,9 +29,25 @@ export const validateAddRooms = (req, res, next) => {
         )
       );
     }
+
+    // Validate images if provided
+    if (room.images) {
+      if (!Array.isArray(room.images)) {
+        return next(new ErrorHandler("Room images must be an array", 400));
+      }
+      for (const image of room.images) {
+        if (typeof image !== "string") {
+          return next(
+            new ErrorHandler(
+              "Each room image must be a valid URL string (e.g., AWS S3 presigned URL)",
+              400
+            )
+          );
+        }
+      }
+    }
   }
 
-  // Validate availabilityDates if provided
   if (availabilityDates) {
     if (!Array.isArray(availabilityDates)) {
       return next(new ErrorHandler("availabilityDates must be an array", 400));
