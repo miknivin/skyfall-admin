@@ -113,23 +113,24 @@ export function AddRoomDialog({ open, handleOpen, resortId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
+  
     const formattedRooms = rooms.map((room) => ({
       roomType: room.roomType,
       capacity: parseInt(room.capacity) || 0,
       pricePerNight: parseFloat(room.pricePerNight) || 0,
       roomCount: parseInt(room.roomCount) || 0,
-      images: room.images.map((img) => img.base64), // Send base64 strings to backend
+      images: room.images.map((img) => img.base64),
     }));
-
+  
     const availabilityDates = rooms.flatMap((room, roomIndex) =>
       room.availability
         .filter((avail) => avail.date && avail.count)
         .map((avail) => ({
+          date: avail.date, 
           availableRooms: [{ roomType: room.roomType, count: parseInt(avail.count) || 0 }],
         }))
     );
-
+  
     try {
       await addRooms({
         resortId,
